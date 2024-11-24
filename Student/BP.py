@@ -6,10 +6,10 @@ import pandas as pd
 from tqdm import tqdm
 from sklearn.model_selection import train_test_split
 
-# 设置设备
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# 定义改进后的自定义BP神经网络模型
+
 class PaperScoringModel(nn.Module):
     def __init__(self):
         super(PaperScoringModel, self).__init__()
@@ -36,7 +36,7 @@ class PaperScoringModel(nn.Module):
         self.fc5 = nn.Linear(64, 1)
 
     def forward(self, x):
-        x = x.squeeze(1)  # 移除大小为1的维度
+        x = x.squeeze(1)
         print(f"Input shape: {x.shape}")
 
         x = self.fc1(x)
@@ -71,54 +71,61 @@ class PaperScoringModel(nn.Module):
         print(f"After fc5 shape: {x.shape}")
         return x
 
-# 初始化自定义BP神经网络模型
+
 paper_scoring_model = PaperScoringModel().to(device)
 
-# 读取保存的词向量文件并构建数据集
 def create_dataset_from_embeddings(embedding_dir, score_data):
     X, y = [], []
     for filename in tqdm(os.listdir(embedding_dir), desc="Loading embeddings"):
-        if filename.endswith('.npy'):
+        if filename.endswith('.npy') and filename.startswith('C'):
             embedding = np.load(os.path.join(embedding_dir, filename))
-            paper_id = filename.split('_')[1]  # 提取编号
-            paper_name = f"C{int(paper_id):03d}.pdf"  # 构建文件名，例如 C001.pdf
-            matching_rows = score_data.loc[score_data['Filename'] == paper_name]
-            if matching_rows.empty:
-                print(f"Warning: No matching score found for {paper_name}")
+
+            try:
+
+                paper_id = filename.split('_')[0][1:]
+                paper_id_int = int(paper_id)
+                paper_name = f"C{paper_id_int:03d}.pdf"
+                matching_rows = score_data.loc[score_data['Filename'] == paper_name]
+                if matching_rows.empty:
+                    print(f"Warning: No matching score found for {paper_name}")
+                    continue
+                actual_score = matching_rows['Total Score'].values[0]
+                X.append(embedding)
+                y.append(actual_score)
+            except ValueError:
+                print(f"Invalid paper ID found in filename: {filename}")
                 continue
-            actual_score = matching_rows['Total Score'].values[0]
-            X.append(embedding)
-            y.append(actual_score)
     return np.array(X), np.array(y)
 
-# 指定保存词向量的文件夹路径
-embedding_dir = '../embedding/embeddings'  # 替换为保存词向量的实际文件夹路径
 
-# 读取评分数据
+
+
+embedding_dir = '../embedding/embeddings'
+
+
 score_data = pd.read_csv('../output/dataset.csv')
 
-# 创建数据集
+
 X, y = create_dataset_from_embeddings(embedding_dir, score_data)
 
-# 分割数据集为训练集和测试集
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# 转换为PyTorch张量
+
 X_train_tensor = torch.tensor(X_train, dtype=torch.float32).to(device)
 y_train_tensor = torch.tensor(y_train, dtype=torch.float32).unsqueeze(1).to(device)
 X_test_tensor = torch.tensor(X_test, dtype=torch.float32).to(device)
 y_test_tensor = torch.tensor(y_test, dtype=torch.float32).unsqueeze(1).to(device)
 
-# 定义损失函数和优化器
+
 criterion = nn.MSELoss()
 optimizer = optim.Adam(paper_scoring_model.parameters(), lr=0.001)
 
-# 训练模型
-num_epochs = 5000
+
+num_epochs = 50000
 for epoch in range(num_epochs):
     print(f"-------第 {epoch+1} 轮训练开始-------")
     paper_scoring_model.train()
-    for i in range(0, X_train_tensor.size(0), 32):  # 批量大小为32
+    for i in range(0, X_train_tensor.size(0), 32):
         batch_X = X_train_tensor[i:i+32]
         batch_y = y_train_tensor[i:i+32]
 
@@ -131,12 +138,12 @@ for epoch in range(num_epochs):
         if (i // 32 + 1) % 10 == 0:
             print(f"训练批次: {i // 32 + 1}, Loss: {loss.item()}")
 
-    # 评估模型
+
     paper_scoring_model.eval()
     total_test_loss = 0
     total_accuracy = 0
     with torch.no_grad():
-        for i in range(0, X_test_tensor.size(0), 32):  # 批量大小为32
+        for i in range(0, X_test_tensor.size(0), 32):
             batch_X = X_test_tensor[i:i+32]
             batch_y = y_test_tensor[i:i+32]
             outputs = paper_scoring_model(batch_X)
@@ -149,11 +156,11 @@ for epoch in range(num_epochs):
     print(f"整体测试集上的Loss: {total_test_loss}")
     print(f"整体测试集上的正确率: {total_accuracy}")
 
-    # 保存模型
-    torch.save(paper_scoring_model.state_dict(), f"paper_scoring_model_epoch_{epoch+1}.pth")
-    print(f"模型已保存: paper_scoring_model_epoch_{epoch+1}.pth")
 
-# 读取保存的词向量文件并进行评分预测
+torch.save(paper_scoring_model.state_dict(), "paper_scoring_model_final.pth")
+print("模型已保存: paper_scoring_model_final.pth")
+
+
 def predict_scores_from_embeddings(embedding_dir):
     scores = []
     for filename in tqdm(os.listdir(embedding_dir), desc="Predicting scores"):
@@ -161,30 +168,48 @@ def predict_scores_from_embeddings(embedding_dir):
             embedding = np.load(os.path.join(embedding_dir, filename))
             embedding_tensor = torch.tensor(embedding, dtype=torch.float32).to(device)
 
+
+            if embedding_tensor.dim() == 1:
+                embedding_tensor = embedding_tensor.unsqueeze(0)
+
             with torch.no_grad():
                 score = paper_scoring_model(embedding_tensor)
-                scores.append((filename, score.item()))
+
+                if score.numel() == 1:
+                    scores.append((filename, score.item()))
+                else:
+                    print(f"Unexpected output shape for {filename}: {score.shape}")
     return scores
 
-# 读取词向量并进行评分预测
+
 predicted_scores = predict_scores_from_embeddings(embedding_dir)
 
-# 创建一个新的DataFrame用于存储预测得分和实际得分
+
 results = []
 for filename, predicted_score in predicted_scores:
-    paper_id = filename.split('_')[1]  # 提取编号
-    paper_name = f"C{int(paper_id):03d}.pdf"  # 构建文件名，例如 C001.pdf
+    try:
+
+        paper_id = filename.split('_')[0][1:]
+        paper_id_int = int(paper_id)
+        paper_name = f"C{paper_id_int:03d}.pdf"
+    except ValueError:
+        print(f"Invalid filename format for extracting paper ID: {filename}")
+        continue
+
+
     matching_rows = score_data.loc[score_data['Filename'] == paper_name]
     if matching_rows.empty:
         print(f"Warning: No matching score found for {paper_name}")
         continue
+
     actual_score = matching_rows['Total Score'].values[0]
     results.append((paper_name, predicted_score, actual_score))
 
+
 results_df = pd.DataFrame(results, columns=['Filename', 'Predicted Score', 'Actual Score'])
 
-# 打印结果
+
 print(results_df)
 
-# 保存结果到CSV文件
-results_df.to_csv('./output/predicted_vs_actual_scores.csv', index=False)
+
+results_df.to_csv('../output/predicted_vs_actual_scores.csv', index=False)

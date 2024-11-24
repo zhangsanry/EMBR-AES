@@ -272,20 +272,20 @@ def evaluate_references(text):
 import re
 
 def evaluate_formulas(text):
-    # 增强的正则表达式，匹配常见数学表达式和符号
+
     formulas_pattern = re.compile(
-        r'\(\d+\)|公式|下式|如公式|如下式|'  # 保持原有的匹配
-        r'\b\d+\s*[\+\-\*/÷=]\s*\d+\b|'  # 匹配基本数学运算
-        r'\b(?:sin|cos|tan|log|exp|sqrt)\b|'  # 匹配常见的数学函数
-        r'\b\d+\s*\^\s*\d+\b|'  # 匹配幂运算，例如 "2^3"
-        r'∫|∑|∏'  # 匹配积分、求和、乘积符号
+        r'\(\d+\)|公式|下式|如公式|如下式|'  
+        r'\b\d+\s*[\+\-\*/÷=]\s*\d+\b|'  
+        r'\b(?:sin|cos|tan|log|exp|sqrt)\b|'  
+        r'\b\d+\s*\^\s*\d+\b|'  
+        r'∫|∑|∏'
     )
 
-    # 直接使用findall方法找到所有匹配的公式
+
     formulas = formulas_pattern.findall(text)
-    # 计算找到的所有匹配项的数量
+
     formulas_count = len(formulas)
-    # 限制得分不超过10
+
     formulas_score = min(10, formulas_count)
     return formulas_score
 
@@ -394,10 +394,10 @@ def evaluate_pdf_length(file_path, text=None):
     else:
         text_before_references = text
 
-    # 计算字数
+
     char_count = len(text_before_references)
 
-    # 假设每1000字符相当于1页
+
     pages_before_references = char_count / 1000.0
 
     pdf_length_score = 10
@@ -488,14 +488,14 @@ class Paper:
 
 
 def save_scores_to_csv(scores, output_path):
-    # 获取文件的目录路径
+
     directory = os.path.dirname(output_path)
 
-    # 如果目录不存在，则创建目录
+
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    # 创建DataFrame并保存到CSV文件
+
     df = pd.DataFrame(scores)
     df.to_csv(output_path, index=False)
     print(f"Scores saved to {output_path}")

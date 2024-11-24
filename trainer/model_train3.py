@@ -6,21 +6,21 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from torch.nn.utils.rnn import pad_sequence
 
-# GPU设备设置
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# 加载bert-base模型和分词器
+
 tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 model = BertForMaskedLM.from_pretrained('bert-base-uncased').to(device)
 
-# 定义从Excel文件中读取数据的方法
+
 
 def read_papers_from_excel(file_path, column_name):
     df = pd.read_excel(file_path)
-    paper_texts = df[column_name].dropna().tolist()  # 读取指定列并去掉缺失值
+    paper_texts = df[column_name].dropna().tolist()
     return paper_texts
 
-# 自定义Dataset类
+
 class PaperDataset(torch.utils.data.Dataset):
     def __init__(self, texts, tokenizer, max_length=512):
         self.texts = texts
@@ -43,19 +43,19 @@ class PaperDataset(torch.utils.data.Dataset):
             segment_inputs = {key: val.squeeze(0) for key, val in segment_inputs.items()}
             segment_inputs["labels"] = segment_inputs["input_ids"].detach().clone()
 
-            # 15%的随机掩蔽
+
             probability_matrix = torch.full(segment_inputs["labels"].shape, 0.15)
             special_tokens_mask = segment_inputs.pop("special_tokens_mask", None)
             if special_tokens_mask is not None:
                 special_tokens_mask = special_tokens_mask.bool()
                 probability_matrix.masked_fill_(special_tokens_mask, value=0.0)
             masked_indices = torch.bernoulli(probability_matrix).bool()
-            segment_inputs["labels"][~masked_indices] = -100  # 只计算掩蔽部分的损失
+            segment_inputs["labels"][~masked_indices] = -100
             inputs.append(segment_inputs)
 
         return inputs
 
-# 自定义collate_fn函数
+
 def collate_fn(batch):
     input_ids = []
     attention_mask = []
@@ -70,7 +70,7 @@ def collate_fn(batch):
     labels = pad_sequence(labels, batch_first=True, padding_value=-100)
     return {'input_ids': input_ids, 'attention_mask': attention_mask, 'labels': labels}
 
-# 读取数据、创建数据集和数据加载器
+
 file_path = '../dataset/train2.xlsx'
 column_name = 'content'
 paper_texts = read_papers_from_excel(file_path, column_name)
@@ -80,7 +80,7 @@ val_dataset = PaperDataset(val_texts, tokenizer)
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=4, shuffle=True, collate_fn=collate_fn)
 val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=4, shuffle=False, collate_fn=collate_fn)
 
-# 设置优化器、开始训练
+
 optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5)
 best_eval_loss = float('inf')
 save_path = '../best_model/best_model_bert2'

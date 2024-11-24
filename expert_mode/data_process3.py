@@ -64,7 +64,7 @@ paper_texts = read_papers_from_folder(folder_path)
 final_embeddings = process_papers(paper_texts)
 
 # 将原始嵌入向量保存到CSV文件中
-raw_data_path = 'E:\\Thesis project\\agnet_example\\raw_embeddings.csv'
+raw_data_path = './raw_embeddings.csv'
 pd.DataFrame(final_embeddings).to_csv(raw_data_path, index=False)
 
 # 使用方差阈值法选择特征

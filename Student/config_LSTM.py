@@ -1,6 +1,6 @@
 # config_LSTM.py
 
-# 输入和输出文件的配置，多个任务
+
 tasks = [
 
 
@@ -15,7 +15,7 @@ tasks = [
             'model': './output/albert_lstm_model_trained_1.pth',
             'validation_results': './LSTM_result/lstm_validation_alresults1.csv'
         },
-        'score_column': 'rea_score'  # 标签所在列
+        'score_column': 'rea_score'
     },
     {
         'input_files': {
@@ -28,7 +28,7 @@ tasks = [
             'model': './output/albert_lstm_model_trained_2.pth',
             'validation_results': './LSTM_result/lstm_validation_alresults2.csv'
         },
-        'score_column': 'rea_score'  # 标签所在列
+        'score_column': 'rea_score'
     },
     {
         'input_files': {
@@ -41,7 +41,7 @@ tasks = [
             'model': './output/albert_lstm_model_trained_3.pth',
             'validation_results': './LSTM_result/lstm_validation_alresults3.csv'
         },
-        'score_column': 'rea_score'  # 标签所在列
+        'score_column': 'rea_score'
     },
     {
         'input_files': {
@@ -54,7 +54,7 @@ tasks = [
             'model': './output/albert_lstm_model_trained_4.pth',
             'validation_results': './LSTM_result/lstm_validation_alresults4.csv'
         },
-        'score_column': 'rea_score'  # 标签所在列
+        'score_column': 'rea_score'
     },
     {
         'input_files': {
@@ -67,7 +67,7 @@ tasks = [
             'model': './output/albert_lstm_model_trained_5.pth',
             'validation_results': './LSTM_result/lstm_validation_alresults5.csv'
         },
-        'score_column': 'rea_score'  # 标签所在列
+        'score_column': 'rea_score'
     },
     {
         'input_files': {
@@ -80,7 +80,7 @@ tasks = [
             'model': './output/albert_lstm_model_trained_6.pth',
             'validation_results': './LSTM_result/lstm_validation_alresults6.csv'
         },
-        'score_column': 'rea_score'  # 标签所在列
+        'score_column': 'rea_score'
     },
     {
         'input_files': {
@@ -93,7 +93,7 @@ tasks = [
             'model': './output/albert_lstm_model_trained_7.pth',
             'validation_results': './LSTM_result/lstm_validation_alresults7.csv'
         },
-        'score_column': 'rea_score'  # 标签所在列
+        'score_column': 'rea_score'
     },
     {
         'input_files': {
@@ -106,19 +106,19 @@ tasks = [
             'model': './output/albert_lstm_model_trained_8.pth',
             'validation_results': './LSTM_result/lstm_validation_alresults8.csv'
         },
-        'score_column': 'rea_score'  # 标签所在列
+        'score_column': 'rea_score'
     },
 
 ]
 
-# 模型参数
+
 model_params = {
-    'input_dim': 768  # 输入维度
+    'input_dim': 768
 }
 
-# 训练参数
+
 training_params = {
-    'num_epochs': 30000,  # 训练轮数
-    'batch_size': 32,  # 批量大小
-    'learning_rate': 1e-5  # 学习率
+    'num_epochs': 30000,
+    'batch_size': 32,
+    'learning_rate': 1e-5
 }

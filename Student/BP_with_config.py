@@ -8,11 +8,11 @@ import pandas as pd
 from tqdm import tqdm
 from config_BP import tasks, model_params, training_params
 
-# 设置设备
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-# 定义自定义BP神经网络模型
+
 class PaperScoringModel(nn.Module):
     def __init__(self, input_dim=768):
         super(PaperScoringModel, self).__init__()
@@ -60,12 +60,12 @@ class PaperScoringModel(nn.Module):
         return x
 
 
-# 初始化模型
+
 def initialize_model(input_dim):
     return PaperScoringModel(input_dim=input_dim).to(device)
 
 
-# 加载嵌入向量和标签
+
 def load_embeddings_and_labels(embedding_file, score_file, score_column):
     X = np.load(embedding_file)
     scores_df = pd.read_excel(score_file)
@@ -73,9 +73,8 @@ def load_embeddings_and_labels(embedding_file, score_file, score_column):
     return X, y
 
 
-# 训练和评估函数
 def train_and_evaluate_model(task):
-    # 获取输入文件、输出文件和其他参数
+
     input_files = task['input_files']
     output_files = task['output_files']
     score_column = task['score_column']
@@ -87,20 +86,19 @@ def train_and_evaluate_model(task):
     learning_rate = training_params['learning_rate']
     input_dim = model_params['input_dim']
 
-    # 初始化模型
+
     model = initialize_model(input_dim)
 
-    # 读取训练集
+
     X_train, y_train = load_embeddings_and_labels(train_embedding_file, train_score_file, score_column)
     X_train_tensor = torch.tensor(X_train, dtype=torch.float32).to(device)
     y_train_tensor = torch.tensor(y_train, dtype=torch.float32).unsqueeze(1).to(device)
 
-    # 定义损失函数和优化器
+
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-    # 训练模型
-    # 训练模型
+
     for epoch in range(num_epochs):
         model.train()
         epoch_train_loss = 0
@@ -108,8 +106,8 @@ def train_and_evaluate_model(task):
             batch_X = X_train_tensor[i:i + batch_size]
             batch_y = y_train_tensor[i:i + batch_size]
 
-            if batch_X.size(0) < 2:  # 检查批次大小是否大于1
-                continue  # 跳过这个批次
+            if batch_X.size(0) < 2:
+                continue
 
             batch_X = batch_X.to(device)
             batch_y = batch_y.to(device)
@@ -127,11 +125,11 @@ def train_and_evaluate_model(task):
             print(
                 f"Task {tasks.index(task) + 1} | Epoch [{epoch + 1}/{num_epochs}], Loss: {avg_loss:.4f}")
 
-    # 保存模型
+
     torch.save(model.state_dict(), output_files['model'])
     print(f"Task {tasks.index(task) + 1} | 训练好的模型已保存到 {output_files['model']}")
 
-    # 评估模型
+
     X_val, y_val = load_embeddings_and_labels(val_embedding_file, val_score_file, score_column)
     X_val_tensor = torch.tensor(X_val, dtype=torch.float32).to(device)
     y_val_tensor = torch.tensor(y_val, dtype=torch.float32).unsqueeze(1).to(device)
@@ -148,7 +146,6 @@ def train_and_evaluate_model(task):
         print(
             f"Task {tasks.index(task) + 1} | Validation Loss: {total_val_loss / (X_val_tensor.size(0) / batch_size):.4f}")
 
-    # 保存验证结果
     results = []
     for i in range(len(X_val_tensor)):
         predicted_score = model(X_val_tensor[i:i + 1]).item()
@@ -160,7 +157,6 @@ def train_and_evaluate_model(task):
     print(f"Task {tasks.index(task) + 1} | 验证结果已保存到 {output_files['validation_results']}")
 
 
-# 主函数，依次处理每个任务
 if __name__ == "__main__":
     for task in tasks:
         print(f"开始处理任务 {tasks.index(task) + 1}")

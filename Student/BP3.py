@@ -10,7 +10,7 @@ from matplotlib.backends.backend_svg import FigureCanvasSVG
 # 设置设备
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# 定义自定义BP神经网络模型
+
 class PaperScoringModel(nn.Module):
     def __init__(self):
         super(PaperScoringModel, self).__init__()
@@ -57,40 +57,40 @@ class PaperScoringModel(nn.Module):
         x = self.fc5(x)
         return x
 
-# 初始化模型
+
 paper_scoring_model = PaperScoringModel().to(device)
 
-# 加载嵌入向量和标签
+
 def load_embeddings_and_labels(embedding_file, score_file, score_column):
     X = np.load(embedding_file)
     scores_df = pd.read_excel(score_file)
     y = scores_df[score_column].dropna().values
     return X, y
 
-# 读取训练集的嵌入向量和标签
-train_embedding_file = '../embedding/embeddings_bert/train8.npy'  # 训练集嵌入向量文件
-train_score_file = '../dataset/train8.xlsx'  # 训练集标签文件
-train_score_column = 'rea_score'  # 训练集标签所在列名
+
+train_embedding_file = '../embedding/embeddings_bert/train8.npy'
+train_score_file = '../dataset/train8.xlsx'
+train_score_column = 'rea_score'
 
 X_train, y_train = load_embeddings_and_labels(train_embedding_file, train_score_file, train_score_column)
 
-# 转换为PyTorch张量
+
 X_train_tensor = torch.tensor(X_train, dtype=torch.float32).to(device)
 y_train_tensor = torch.tensor(y_train, dtype=torch.float32).unsqueeze(1).to(device)
 
-# 定义损失函数和优化器
+
 criterion = nn.MSELoss()
 optimizer = optim.Adam(paper_scoring_model.parameters(), lr=0.00001)
 
-# 记录训练损失
+
 train_losses = []
 
-# 训练模型
+
 num_epochs = 50000
 for epoch in range(num_epochs):
     paper_scoring_model.train()
     epoch_train_loss = 0
-    for i in range(0, X_train_tensor.size(0), 32):  # 批量大小为32
+    for i in range(0, X_train_tensor.size(0), 32):
         batch_X = X_train_tensor[i:i+32]
         batch_y = y_train_tensor[i:i+32]
 
@@ -104,27 +104,27 @@ for epoch in range(num_epochs):
     train_losses.append(epoch_train_loss / (X_train_tensor.size(0) / 32))
     print(f"Epoch [{epoch + 1}/{num_epochs}], Loss: {epoch_train_loss / (X_train_tensor.size(0) / 32):.4f}")
 
-# 保存训练好的模型
+
 torch.save(paper_scoring_model.state_dict(), "paper_scoring_model_trained.pth")
 print("训练好的模型已保存")
 
-# 加载验证集的嵌入向量和标签
-val_embedding_file = '../embedding/embeddings_bert/val8.npy'  # 验证集嵌入向量文件
-val_score_file = '../dataset/val8.xlsx'  # 验证集标签文件
-val_score_column = 'rea_score'  # 验证集标签所在列名
+
+val_embedding_file = '../embedding/embeddings_bert/val8.npy'
+val_score_file = '../dataset/val8.xlsx'
+val_score_column = 'rea_score'
 
 X_val, y_val = load_embeddings_and_labels(val_embedding_file, val_score_file, val_score_column)
 
-# 转换为PyTorch张量
+
 X_val_tensor = torch.tensor(X_val, dtype=torch.float32).to(device)
 y_val_tensor = torch.tensor(y_val, dtype=torch.float32).unsqueeze(1).to(device)
 
-# 评估模型
+
 paper_scoring_model.eval()
 val_losses = []
 with torch.no_grad():
     total_val_loss = 0
-    for i in range(0, X_val_tensor.size(0), 32):  # 批量大小为32
+    for i in range(0, X_val_tensor.size(0), 32):
         batch_X = X_val_tensor[i:i+32]
         batch_y = y_val_tensor[i:i+32]
         outputs = paper_scoring_model(batch_X)
@@ -133,7 +133,7 @@ with torch.no_grad():
     val_losses.append(total_val_loss / (X_val_tensor.size(0) / 32))
     print(f"Validation Loss: {total_val_loss / (X_val_tensor.size(0) / 32):.4f}")
 
-# 保存验证结果
+
 results = []
 for i in range(len(X_val_tensor)):
     predicted_score = paper_scoring_model(X_val_tensor[i:i+1]).item()
