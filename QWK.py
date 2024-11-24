@@ -20,14 +20,14 @@ def quadratic_weighted_kappa(y_true, y_pred):
     y_true = np.asarray(y_true, dtype=int)
     y_pred = np.asarray(y_pred, dtype=int)
 
-    # 构建权重矩阵
+
     num_ratings = int(max_rating - min_rating + 1)
     weights = np.zeros((num_ratings, num_ratings))
     for i in range(num_ratings):
         for j in range(num_ratings):
             weights[i, j] = float((i - j) ** 2) / (num_ratings - 1) ** 2
 
-    # 构建评分矩阵
+
     hist_true = np.zeros(num_ratings)
     hist_pred = np.zeros(num_ratings)
     for i in range(len(y_true)):
@@ -49,18 +49,18 @@ def quadratic_weighted_kappa(y_true, y_pred):
     return qwk
 
 
-# 读取CSV文件
-file_path = 'result/albert_result/albert_validation_results7.csv'  # 替换为您的文件路径
+
+file_path = 'result/albert_result/albert_validation_results7.csv'
 data = pd.read_csv(file_path)
 
-# 提取真实分数和预测分数
+
 y_true = data['Actual Score'].values
 y_pred = data['Predicted Score'].values
 
-# 确保分数为整数
+
 y_true = np.round(y_true).astype(int)
 y_pred = np.round(y_pred).astype(int)
 
-# 计算QWK
+
 qwk = quadratic_weighted_kappa(y_true, y_pred)
 print(f"Quadratic Weighted Kappa: {qwk}")
