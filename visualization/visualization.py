@@ -3,10 +3,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
-# 读取CSV数据
+
 data = pd.read_csv('../output/predicted_vs_actual_scores.csv')
 
-# 创建保存图片的目录
+
 output_dir = '../pictures'
 os.makedirs(output_dir, exist_ok=True)
 
@@ -15,7 +15,7 @@ def plot_scatter(data, output_dir, dpi=100):
     sns.scatterplot(x='Actual Score', y='Predicted Score', data=data)
     plt.plot([data['Actual Score'].min(), data['Actual Score'].max()],
              [data['Actual Score'].min(), data['Actual Score'].max()],
-             color='red', linestyle='--')  # 添加对角线
+             color='red', linestyle='--')
     plt.xlabel('Actual Score')
     plt.ylabel('Predicted Score')
     plt.title('Scatter Plot of Actual vs Predicted Scores')
@@ -26,7 +26,7 @@ def plot_residual(data, output_dir, dpi=100):
     plt.figure(figsize=(10, 6), dpi=dpi)
     residuals = data['Predicted Score'] - data['Actual Score']
     sns.scatterplot(x=data['Actual Score'], y=residuals)
-    plt.axhline(0, color='red', linestyle='--')  # 添加水平线
+    plt.axhline(0, color='red', linestyle='--')
     plt.xlabel('Actual Score')
     plt.ylabel('Residuals')
     plt.title('Residual Plot')
@@ -56,7 +56,7 @@ def plot_distribution(data, output_dir, dpi=100):
     plt.savefig(os.path.join(output_dir, 'distribution_plot.svg'), format='svg')
     plt.close()
 
-# 调用绘图函数并设置dpi
+
 plot_scatter(data, output_dir, dpi=100)
 plot_residual(data, output_dir, dpi=100)
 plot_bar(data, output_dir, dpi=100)
