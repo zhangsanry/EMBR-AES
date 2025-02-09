@@ -54,4 +54,18 @@ This repository contains several key modules that contribute to the functionalit
 
 ---
 
+## **TDBSW Dataset**
+The **TDBSW dataset** originates from the **"Teddy Cup" Data Mining Challenge**. 
+
+The **"Teddy Cup" Data Mining Challenge** is a national-level academic competition aimed at **graduate and undergraduate students**. It is designed to encourage students to actively engage in data mining, enhancing their ability to analyze and solve real-world problems. 
+
+This competition is organized by the **Teddy Cup Data Mining Challenge Committee**, and the competition topics are primarily sourced from **real-world problems provided by enterprises, government institutions, and research organizations**. Participants are required to possess **statistical and data mining knowledge** as well as proficiency in relevant software tools.
+
+For more details about the **Teddy Cup Data Mining Challenge**, please visit the official website:  
+[**https://www.tipdmcup.cn/**](https://www.tipdmcup.cn/).  
+
+This website provides the latest competition updates and relevant resources.
+
+---
+
 This README provides an overview of **EMBR-AES**, its core functionalities, and its file structure, ensuring that users can effectively navigate the repository and understand the implementation details. If you have any questions or require further details, please feel free to reach out.
